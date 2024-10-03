@@ -22,8 +22,8 @@ export default function Signin() {
             const docRef = doc(db, "Users", user.uid);
             const docSnap = await getDoc(docRef);
             if(docSnap.exists()){
-                if(docSnap.data().role == 'principal'){
-                    router.push("/principal");
+                if(docSnap.data().role == 'Contractor'){
+                    router.push("/contractor");
                 }
                 else if(docSnap.data().role == 'student'){
                     router.push("/student");

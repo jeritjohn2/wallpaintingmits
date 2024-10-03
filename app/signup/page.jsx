@@ -20,11 +20,18 @@ export default function Signup() {
       const user = auth.currentUser;
       if(user){
         await setDoc(doc(db, "Users", user.uid),{
+          uid: user.uid,
           email: user.email,
           role: role,
         })
+        if(role == 'Contractor'){
+          await setDoc(doc(db, "Contractors", user.uid),{
+            uid: user.uid,
+            email: user.email,
+          })
+        }
       }
-      toast.success("User Registered ! ", {position:'top-center'})
+      
     }
     catch(error){
       console.log(error.message)
@@ -83,8 +90,9 @@ export default function Signup() {
               <option value="" disabled>
                 Select your role
               </option>
-              <option value="principal">Principal</option>
-              <option value="student">Student</option>
+              <option value="principal">Head Office</option>
+              <option value="Manager">Manager</option>
+              <option value="Contractor">Contractor</option>
             </select>
           </div>
 
