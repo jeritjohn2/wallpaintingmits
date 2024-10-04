@@ -29,6 +29,14 @@ export default function Signup() {
             uid: user.uid,
             email: user.email,
           })
+          router.push("/signin");
+        }
+        else if(role == 'Manager'){
+          await setDoc(doc(db, "Manager", user.uid),{
+            uid: user.uid,
+            email: user.email,
+          })
+          router.push("/signin");
         }
       }
       

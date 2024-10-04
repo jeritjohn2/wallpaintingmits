@@ -25,8 +25,8 @@ export default function Signin() {
                 if(docSnap.data().role == 'Contractor'){
                     router.push("/contractor");
                 }
-                else if(docSnap.data().role == 'student'){
-                    router.push("/student");
+                else if(docSnap.data().role == 'Manager'){
+                    router.push("/manager");
                 }
             }
         })
