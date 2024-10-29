@@ -43,7 +43,7 @@ export default function Sidebar() {
 
           const user = auth.currentUser;
           if(user){
-              updateDoc(doc(db, "Contractors", user.uid),{
+              updateDoc(doc(db, "Walls", user.uid),{
               imageid: arrayUnion(path),
             })
           }

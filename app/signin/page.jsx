@@ -19,7 +19,7 @@ export default function Signin() {
     try{
         await signInWithEmailAndPassword(auth, email, password);
         auth.onAuthStateChanged(async (user) => {
-            const docRef = doc(db, "Users", user.uid);
+            const docRef = doc(db, "Walls", user.uid);
             const docSnap = await getDoc(docRef);
             if(docSnap.exists()){
                 if(docSnap.data().role == 'Contractor'){

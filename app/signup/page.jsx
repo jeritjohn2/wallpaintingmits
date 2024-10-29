@@ -19,25 +19,12 @@ export default function Signup() {
       await createUserWithEmailAndPassword(auth, email, password);
       const user = auth.currentUser;
       if(user){
-        await setDoc(doc(db, "Users", user.uid),{
+        await setDoc(doc(db, "Walls", user.uid),{
           uid: user.uid,
           email: user.email,
           role: role,
         })
-        if(role == 'Contractor'){
-          await setDoc(doc(db, "Contractors", user.uid),{
-            uid: user.uid,
-            email: user.email,
-          })
-          router.push("/signin");
-        }
-        else if(role == 'Manager'){
-          await setDoc(doc(db, "Manager", user.uid),{
-            uid: user.uid,
-            email: user.email,
-          })
-          router.push("/signin");
-        }
+        
       }
       
     }

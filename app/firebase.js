@@ -3,17 +3,15 @@ import { initializeApp } from "firebase/app";
 import {getAuth} from "firebase/auth"
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAqDLbuuyXe4bu42KRf3XhJuvvh-NGe1P4",
-  authDomain: "wall-painting-f83d9.firebaseapp.com",
-  projectId: "wall-painting-f83d9",
-  storageBucket: "wall-painting-f83d9.appspot.com",
-  messagingSenderId: "618141511025",
-  appId: "1:618141511025:web:c6fc8ab1c045bf1afb1ad0"
+  apiKey: "AIzaSyAmNSUXh4NPmT-wCNzYHDpMa3xNm5PWots",
+  authDomain: "wall-painting-mits.firebaseapp.com",
+  projectId: "wall-painting-mits",
+  storageBucket: "wall-painting-mits.appspot.com",
+  messagingSenderId: "374585604907",
+  appId: "1:374585604907:web:e8d24daf4390d4f152236e",
+  measurementId: "G-2WX8QSYJNP"
 };
 
 // Initialize Firebase
