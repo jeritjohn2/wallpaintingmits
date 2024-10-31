@@ -6,6 +6,8 @@ import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
 import locationsData from '../location.json'; // Adjust the path if needed
+import Image from 'next/image'; // Import Next.js Image component
+
 const locations = locationsData.locations; // Access the locations array
 
 export default function ViewContractor() {
@@ -120,7 +122,13 @@ export default function ViewContractor() {
                     imageData.approved ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 >
-                  <img src={url} alt={`Contractor Image ${imgIndex + 1}`} className="w-32 h-32 object-cover rounded-md mr-4" />
+                  <Image
+                    src={url}
+                    alt={`Contractor Image ${imgIndex + 1}`}
+                    width={128}
+                    height={128}
+                    className="object-cover rounded-md mr-4"
+                  />
                   <div className="text-gray-300">
                     <p>Approved: {imageData.approved ? 'Yes' : 'No'}</p>
                     {nearestLocationData && (
