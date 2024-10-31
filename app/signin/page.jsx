@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import {auth, db} from "../firebase"
-import {setDoc, doc, getDoc} from "firebase/firestore"
+import {doc, getDoc} from "firebase/firestore"
 import {useRouter} from "next/navigation"
 
 export default function Signin() {

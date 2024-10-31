@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import {auth, db} from "../firebase"
 import {setDoc, doc} from "firebase/firestore"
-import {toast} from "react-toastify"
 
 export default function Signup() {
   // State variables for storing input values

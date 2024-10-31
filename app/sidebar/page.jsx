@@ -2,12 +2,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaHome, FaClipboardList, FaCog, FaSignOutAlt, FaUpload } from 'react-icons/fa';
-import {ref, uploadBytesResumable, UploadTaskSnapshot} from "firebase/storage";
+import { FaHome, FaClipboardList, FaCog, FaUpload } from 'react-icons/fa';
+import {ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../firebase"
 import { v4 as uuidv4 } from 'uuid';
 import {auth, db} from "../firebase"
-import {setDoc, doc, arrayUnion, updateDoc} from "firebase/firestore"
+import {doc, arrayUnion, updateDoc} from "firebase/firestore"
 
 export default function Sidebar() {
   // State for managing modal visibility
@@ -31,7 +31,7 @@ export default function Sidebar() {
 
       UploadTask.on(
         "state_changed",
-        (snapshot, UploadTaskSnapshot) => {
+        (snapshot) => {
           const progress = (snapshot.bytestransferred / snapshot.totalBytes) * 100;
           console.log(`upload is ${progress} % done`);
         },

@@ -6,6 +6,7 @@ import { db } from '../firebase'; // Make sure Firestore is correctly imported
 import { auth } from '../firebase'; // Ensure auth is imported correctly
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
+import Image from 'next/image';
 
 export default function Home() {
   const [urls, setUrls] = useState([]); // State to store image URLs
@@ -65,7 +66,7 @@ export default function Home() {
               <div key={index} className="bg-gray-800 rounded-lg shadow-lg p-4">
                 <div className="bg-gray-700 rounded-lg shadow-md p-2">
                   <a href={imageUrl} target="_blank" rel="noopener noreferrer">
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={`Photo ${index + 1}`}
                       className="w-32 h-32 object-cover rounded-md"
