@@ -1,12 +1,11 @@
-"use client"
+'use client';
+
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
-import locationsData from '../location.json'; // Adjust the path accordingly
+import locationsData from '../location.json'; // Adjust the path if needed
 const locations = locationsData.locations; // Access the locations array
 
 export default function ViewContractor() {
@@ -27,33 +26,18 @@ export default function ViewContractor() {
       }
 
       try {
-        const contractorQuery = query(collection(db, 'Walls'), where('email', '==', email));
+        const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', email));
         const querySnapshot = await getDocs(contractorQuery);
 
         if (!querySnapshot.empty) {
-          const fetchedImages = await Promise.all(
-            querySnapshot.docs.map(async (doc) => {
-              const data = doc.data();
-              const imagePaths = data.imageid || []; // Ensure that imageid is an array
+          const fetchedImages = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            const imageUrls = data.url || []; // Get URLs directly from the 'url' array field
 
-              // Fetch URLs for each image path
-              const imageUrls = await Promise.all(
-                imagePaths.map(async (path) => {
-                  try {
-                    const url = await getDownloadURL(ref(storage, path));
-                    return url;
-                  } catch (error) {
-                    console.error(`Error fetching image URL for path ${path}:`, error);
-                    return null;
-                  }
-                })
-              );
+            return { ...data, imageUrls };
+          });
 
-              return { ...data, imageUrls: imageUrls.filter((url) => url !== null) }; // Only keep valid URLs
-            })
-          );
-
-          setImages(fetchedImages); // Set images as an array of fetched images
+          setImages(fetchedImages); // Set images array
           if (fetchedImages[0]?.location) {
             const currentLat = fetchedImages[0].location._lat; // Get latitude from the first image data
             const currentLon = fetchedImages[0].location._long; // Get longitude from the first image data
@@ -84,9 +68,9 @@ export default function ViewContractor() {
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
+
     return R * c; // Distance in kilometers
   };
 

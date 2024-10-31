@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
@@ -15,11 +15,11 @@ export default function Manager() {
   // Fetch only contractor usernames and emails from Firebase Firestore
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, 'Walls'), where('role', '==', 'Contractor')), // Filter for role 'contractor'
+      query(collection(db, 'Walls')), // Collection for contractors
       (querySnapshot) => {
         const fetchedContractors = querySnapshot.docs.map((doc) => ({
-          id: doc.id, // Include document ID for handling clicks
-          email: doc.data().email, // Assume each document has an email field
+          id: doc.id, // Document ID (unique identifier)
+          contractorEmail: doc.data().contractorEmail, // Use the correct field name here
         }));
 
         setContractors(fetchedContractors);
@@ -30,10 +30,10 @@ export default function Manager() {
     return () => unsubscribe();
   }, []);
 
-  const handleCardClick = (email, id) => {
+  const handleCardClick = (contractorEmail) => {
     // Store the contractor's email in local storage
-    localStorage.setItem('selectedContractorEmail', email);
-    // Redirect to the view page with the contractor's ID
+    localStorage.setItem('selectedContractorEmail', contractorEmail);
+    // Redirect to the view page
     router.push("/view");
   };
 
@@ -56,10 +56,10 @@ export default function Manager() {
               <div
                 key={contractor.id}
                 className="bg-gray-800 rounded-lg shadow-lg p-4 cursor-pointer w-48 h-48 flex items-center justify-center"
-                onClick={() => handleCardClick(contractor.email, contractor.id)}
+                onClick={() => handleCardClick(contractor.contractorEmail)}
               >
                 <p className="text-gray-300 text-[0.8rem] font-semibold text-center">
-                  {contractor.email}
+                  {contractor.contractorEmail}
                 </p>
               </div>
             ))

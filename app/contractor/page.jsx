@@ -2,69 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '../firebase'; // Ensure your Firebase configuration is correctly imported
-import { ref, getDownloadURL } from 'firebase/storage';
-import { storage, auth } from '../firebase'; // Ensure storage and auth are imported correctly
+import { db } from '../firebase'; // Make sure Firestore is correctly imported
+import { auth } from '../firebase'; // Ensure auth is imported correctly
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
 
 export default function Home() {
-  // State to store the fetched photos
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true); // State to manage loading
+  const [urls, setUrls] = useState([]); // State to store image URLs
+  const [loading, setLoading] = useState(true); // Loading state
 
-  // Fetch photos from Firebase Firestore in real-time
   useEffect(() => {
-    const user = auth.currentUser; // Get the current user
+    const user = auth.currentUser;
 
     if (!user) {
-      // User is not logged in
       setLoading(false);
-      return; // Return early if the user is not logged in
+      return;
     }
 
-    // User is logged in, set up the Firestore listener
+    // Query Firestore for the current user's document in "Walls" collection
     const unsubscribe = onSnapshot(
-      query(collection(db, 'Walls'), where('uid', '==', user.uid)),
-      async (querySnapshot) => {
-        const fetchedPhotos = await Promise.all(
-          querySnapshot.docs.map(async (doc) => {
-            const data = doc.data();
-            const imagePaths = data.imageid; // Assume imageid is an array of image paths
-
-            // If imagePaths is an array, map over each path to get its URL
-            if (Array.isArray(imagePaths)) {
-              try {
-                const imageUrls = await Promise.all(
-                  imagePaths.map(async (path) => {
-                    try {
-                      const imageUrl = await getDownloadURL(ref(storage, path));
-                      return imageUrl;
-                    } catch (error) {
-                      console.error(`Error fetching image URL for ${path}:`, error);
-                      return null;
-                    }
-                  })
-                );
-
-                // Return the document data along with an array of image URLs
-                return {
-                  ...data,
-                  imageUrls: imageUrls.filter((url) => url !== null), // Filter out any null URLs
-                };
-              } catch (error) {
-                console.error('Error fetching image URLs:', error);
-                return { ...data, imageUrls: [] }; // Return an empty array if no URLs can be fetched
-              }
-            }
-
-            // If imageid is not an array, return the document data as is
-            return { ...data, imageUrls: [] };
-          })
-        );
-
-        setPhotos(fetchedPhotos);
-        setLoading(false); // Set loading to false after data is fetched
+      query(collection(db, 'Walls'), where('contractorEmail', '==', user.email)),
+      (querySnapshot) => {
+        const userData = querySnapshot.docs[0]?.data(); // Access the first matching document
+        if (userData && Array.isArray(userData.url)) {
+          setUrls(userData.url); // Set URLs from the "url" array
+        } else {
+          setUrls([]); // Set empty if no URLs found
+        }
+        setLoading(false); // Set loading to false once data is fetched
       }
     );
 
@@ -72,7 +37,6 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Show loading or message when user is not authenticated
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -91,60 +55,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
-      {/* Navbar */}
       <Navbar />
-
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main Content */}
       <div className="ml-64 pt-16 w-full p-8">
-        {/* Photo Row Container */}
         <div className="flex flex-wrap justify-start gap-6 p-4">
-          {photos.length > 0 ? (
-            // Iterate over each contractor
-            photos.map((photo, index) => (
-              // Iterate over each image URL and display them in their own separate box
-              photo.imageUrls && photo.imageUrls.length > 0 ? (
-                photo.imageUrls.map((url, urlIndex) => (
-                  <div
-                    key={`${photo.id}-${urlIndex}`}
-                    className="bg-gray-800 rounded-lg shadow-lg p-4"
-                  >
-                    {/* Image */}
-                    <div className="bg-gray-700 rounded-lg shadow-md p-2">
-                      <a href={url} target="_blank" rel="noopener noreferrer">
-                        <img
-                          src={url}
-                          alt={photo.caption || 'Photo'}
-                          className="w-32 h-32 object-cover rounded-md"
-                        />
-                      </a>
-                    </div>
-
-                    {/* Contractor's Name */}
-                    {photo.contractorName && (
-                      <p className="text-gray-300 text-lg font-semibold text-center mt-2">
-                        Contractor: {photo.contractorName}
-                      </p>
-                    )}
-
-                    {/* Optional Caption */}
-                    {photo.caption && (
-                      <p className="text-gray-300 text-md font-semibold text-center mt-1">
-                        {photo.caption}
-                      </p>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p key={`${photo.id}-no-images`} className="text-gray-300 text-lg text-center">
-                  No images available
-                </p>
-              )
+          {urls.length > 0 ? (
+            urls.map((imageUrl, index) => (
+              <div key={index} className="bg-gray-800 rounded-lg shadow-lg p-4">
+                <div className="bg-gray-700 rounded-lg shadow-md p-2">
+                  <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={imageUrl}
+                      alt={`Photo ${index + 1}`}
+                      className="w-32 h-32 object-cover rounded-md"
+                    />
+                  </a>
+                </div>
+              </div>
             ))
           ) : (
-            <p className="text-gray-300 text-lg text-center">No contractors found with images</p>
+            <p className="text-gray-300 text-lg text-center">No images available</p>
           )}
         </div>
       </div>
