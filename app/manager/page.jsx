@@ -1,9 +1,10 @@
+// src/Manager.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase'; // Assuming you still need to access Firestore
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
 
@@ -11,29 +12,37 @@ export default function Manager() {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState(''); // State to store error messages
 
-  // Fetch only contractor usernames and emails from Firebase Firestore
+  // Check user's role from local storage
   useEffect(() => {
+    const role = localStorage.getItem('currRole');
+
+    if (role !== 'Manager') {
+      // If not a manager, set an error message and exit early
+      setErrorMessage('You must be logged in as a manager to view this page.');
+      setLoading(false); // Set loading to false since we are done processing
+      return; // Exit the useEffect if not a manager
+    }
+
+    // Fetch contractors if the user is a manager
     const unsubscribe = onSnapshot(
-      query(collection(db, 'Walls')), // Collection for contractors
+      query(collection(db, 'Walls')),
       (querySnapshot) => {
         const fetchedContractors = querySnapshot.docs.map((doc) => ({
-          id: doc.id, // Document ID (unique identifier)
-          contractorEmail: doc.data().contractorEmail, // Use the correct field name here
+          id: doc.id,
+          contractorEmail: doc.data().contractorEmail,
         }));
-
         setContractors(fetchedContractors);
-        setLoading(false);
+        setLoading(false); // Set loading to false once data is fetched
       }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleCardClick = (contractorEmail) => {
-    // Store the contractor's email in local storage
     localStorage.setItem('selectedContractorEmail', contractorEmail);
-    // Redirect to the view page
     router.push("/view");
   };
 
@@ -41,6 +50,14 @@ export default function Manager() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <p className="text-gray-300">Loading...</p>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <p className="text-gray-300">{errorMessage}</p>
       </div>
     );
   }

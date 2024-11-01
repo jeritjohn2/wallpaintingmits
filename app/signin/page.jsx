@@ -22,6 +22,7 @@ export default function Signin() {
             const docRef = doc(db, "Users", user.uid);
             const docSnap = await getDoc(docRef);
             if(docSnap.exists()){
+                localStorage.setItem('currRole', docSnap.data().role);
                 if(docSnap.data().role == 'Contractor'){
                     router.push("/contractor");
                 }

@@ -1,3 +1,4 @@
+// src/Home.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,16 +12,27 @@ import Image from 'next/image';
 export default function Home() {
   const [urls, setUrls] = useState([]); // State to store image URLs
   const [loading, setLoading] = useState(true); // Loading state
+  const [errorMessage, setErrorMessage] = useState(''); // State to store error messages
 
   useEffect(() => {
+    const role = localStorage.getItem('currRole');
+
+    // Check if the role is not contractor
+    if (role !== 'contractor') {
+      setErrorMessage('You must be logged in as a contractor to view this page.');
+      setLoading(false);
+      return; // Exit early if the user is not a contractor
+    }
+
     const user = auth.currentUser;
 
     if (!user) {
+      setErrorMessage('Please log in to view your images.');
       setLoading(false);
-      return;
+      return; // Exit early if the user is not logged in
     }
 
-    // Query Firestore for the current user's document in "Walls" collection
+    // Query Firestore for the current user's document in the "Walls" collection
     const unsubscribe = onSnapshot(
       query(collection(db, 'Walls'), where('contractorEmail', '==', user.email)),
       (querySnapshot) => {
@@ -46,10 +58,10 @@ export default function Home() {
     );
   }
 
-  if (!auth.currentUser) {
+  if (errorMessage) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-gray-300">Please log in to view your images.</p>
+        <p className="text-gray-300">{errorMessage}</p>
       </div>
     );
   }
