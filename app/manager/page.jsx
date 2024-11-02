@@ -29,10 +29,20 @@ export default function Manager() {
     const unsubscribe = onSnapshot(
       query(collection(db, 'Walls')),
       (querySnapshot) => {
-        const fetchedContractors = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          contractorEmail: doc.data().contractorEmail,
-        }));
+        const fetchedContractors = [];
+        const uniqueEmails = new Set(); // Set to keep track of unique emails
+
+        querySnapshot.docs.forEach((doc) => {
+          const contractorEmail = doc.data().contractorEmail;
+          if (!uniqueEmails.has(contractorEmail)) {
+            uniqueEmails.add(contractorEmail);
+            fetchedContractors.push({
+              id: doc.id,
+              contractorEmail: contractorEmail,
+            });
+          }
+        });
+
         setContractors(fetchedContractors);
         setLoading(false); // Set loading to false once data is fetched
       }
