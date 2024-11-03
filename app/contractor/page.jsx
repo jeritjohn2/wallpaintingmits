@@ -18,7 +18,7 @@ export default function Home() {
     const role = localStorage.getItem('currRole');
 
     // Check if the role is not contractor
-    if (role !== 'contractor') {
+    if (role !== 'Contractor') {
       setErrorMessage('You must be logged in as a contractor to view this page.');
       setLoading(false);
       return; // Exit early if the user is not a contractor
