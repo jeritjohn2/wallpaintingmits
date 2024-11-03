@@ -1,3 +1,4 @@
+// src/ViewContractor.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +12,7 @@ import Image from 'next/image'; // Import Next.js Image component
 const locations = locationsData.locations; // Access the locations array
 
 export default function ViewContractor() {
-  const [images, setImages] = useState([]);
+  const [contractorSessions, setContractorSessions] = useState([]);
   const [contractorEmail, setContractorEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [nearestLocationData, setNearestLocationData] = useState(null);
@@ -31,18 +32,26 @@ export default function ViewContractor() {
         const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', email));
         const querySnapshot = await getDocs(contractorQuery);
 
+        const sessions = {}; // Group images by session
+
         if (!querySnapshot.empty) {
-          const fetchedImages = querySnapshot.docs.map((doc) => {
+          querySnapshot.docs.forEach((doc) => {
             const data = doc.data();
             const imageUrls = data.url || []; // Get URLs directly from the 'url' array field
 
-            return { ...data, imageUrls };
+            if (!sessions[doc.id]) {
+              sessions[doc.id] = { sessionData: data, imageUrls: [] };
+            }
+
+            sessions[doc.id].imageUrls.push(...imageUrls);
           });
 
-          setImages(fetchedImages); // Set images array
-          if (fetchedImages[0]?.location) {
-            const currentLat = fetchedImages[0].location._lat; // Get latitude from the first image data
-            const currentLon = fetchedImages[0].location._long; // Get longitude from the first image data
+          setContractorSessions(Object.values(sessions)); // Convert sessions to an array
+
+          // Check the first session's location for nearest place (if location exists)
+          if (Object.values(sessions)[0]?.sessionData?.location) {
+            const currentLat = Object.values(sessions)[0].sessionData.location._lat;
+            const currentLon = Object.values(sessions)[0].sessionData.location._long;
             const nearest = findNearestLocation(currentLat, currentLon);
             setNearestLocationData(nearest);
           }
@@ -112,35 +121,39 @@ export default function ViewContractor() {
       <div className="flex flex-col items-start p-8 w-full ml-64">
         <Navbar />
         <h1 className="text-gray-300 text-2xl font-semibold mb-5 mt-11">Images taken by {contractorEmail}</h1>
-        <div className="flex flex-wrap gap-6 justify-start w-full">
-          {images.length > 0 ? (
-            images.map((imageData, index) => (
-              imageData.imageUrls.map((url, imgIndex) => (
-                <div
-                  key={`${index}-${imgIndex}`}
-                  className={`border border-gray-600 rounded-lg p-4 w-full flex items-center ${
-                    imageData.approved ? 'bg-green-500' : 'bg-red-500'
-                  }`}
-                >
-                  <Image
-                    src={url}
-                    alt={`Contractor Image ${imgIndex + 1}`}
-                    width={128}
-                    height={128}
-                    className="object-cover rounded-md mr-4"
-                  />
-                  <div className="text-gray-300">
-                    <p>Approved: {imageData.approved ? 'Yes' : 'No'}</p>
-                    {nearestLocationData && (
-                      <>
-                        <p>Place: {nearestLocationData.address}</p>
-                        <p>Latitude: {nearestLocationData.latitude}</p>
-                        <p>Longitude: {nearestLocationData.longitude}</p>
-                      </>
-                    )}
+        <div className="flex flex-col gap-6 w-full">
+          {contractorSessions.length > 0 ? (
+            contractorSessions.map((session, sessionIndex) => (
+              <div
+                key={sessionIndex}
+                className={`border border-gray-600 rounded-lg p-6 mb-4 ${
+                  session.sessionData.status === 'APPROVED' ? 'bg-green-700' : 'bg-red-700'
+                }`}
+              >
+                <h2 className="text-lg font-semibold text-gray-300 mb-3">
+                  Session {sessionIndex + 1} - Status: {session.sessionData.status}
+                </h2>
+                {nearestLocationData && (
+                  <div className="text-gray-300 mb-4">
+                    <p>Nearest Location: {nearestLocationData.address}</p>
+                    <p>Latitude: {nearestLocationData.latitude}</p>
+                    <p>Longitude: {nearestLocationData.longitude}</p>
                   </div>
+                )}
+                <div className="flex flex-wrap gap-4">
+                  {session.imageUrls.map((url, imgIndex) => (
+                    <div key={`${sessionIndex}-${imgIndex}`} className="relative w-32 h-32 overflow-hidden border border-gray-700 rounded-lg">
+                      <Image
+                        src={url}
+                        alt={`Contractor Image ${imgIndex + 1}`}
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded-md"
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))
+              </div>
             ))
           ) : (
             <p className="text-gray-300">No images available for this contractor.</p>
