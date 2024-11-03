@@ -131,7 +131,7 @@ export default function ViewContractor() {
                 }`}
               >
                 <h2 className="text-lg font-semibold text-gray-300 mb-3">
-                  Session {sessionIndex + 1} - Status: {session.sessionData.status}
+                  Wall ID: {session.sessionData.wallId} - Status: {session.sessionData.status}
                 </h2>
                 {nearestLocationData && (
                   <div className="text-gray-300 mb-4">
