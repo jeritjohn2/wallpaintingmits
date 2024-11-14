@@ -12,15 +12,15 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function Sidebar() {
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showAddContractorModal, setShowAddContractorModal] = useState(false);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [image, setImage] = useState(null);
-  const [contractorEmail, setContractorEmail] = useState('');
-  const [contractorPassword, setContractorPassword] = useState('');
-  const [isManager, setIsManager] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [role, setRole] = useState('');
 
   useEffect(() => {
-    const role = localStorage.getItem('currRole');
-    setIsManager(role === 'Manager');
+    const currRole = localStorage.getItem('currRole');
+    setRole(currRole);
   }, []);
 
   const handleFileChange = (e) => setImage(e.target.files[0]);
@@ -29,13 +29,13 @@ export default function Sidebar() {
     if (image) {
       const path = `images/${uuidv4()}_${image.name}`;
       const storageRef = ref(storage, path);
-      const UploadTask = uploadBytesResumable(storageRef, image);
+      const uploadTask = uploadBytesResumable(storageRef, image);
 
-      UploadTask.on(
+      uploadTask.on(
         'state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload is ${progress} % done`);
+          console.log(`Upload is ${progress}% done`);
         },
         (error) => console.error(error.message),
         async () => {
@@ -53,32 +53,32 @@ export default function Sidebar() {
     }
   };
 
-  const handleAddContractorClick = () => {
-    if (isManager) {
-      setShowAddContractorModal(true);
+  const handleAddUserClick = () => {
+    if (role === 'Manager' || role === 'Admin') {
+      setShowAddUserModal(true);
     } else {
-      alert('Only managers can add contractors.');
+      alert('Only managers or admins can add users.');
     }
   };
 
-  const handleAddContractor = async () => {
-    try {
-      // Create new contractor user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, contractorEmail, contractorPassword);
-      const contractorUid = userCredential.user.uid;
+  const handleAddUser = async () => {
+    const userRole = role === 'Admin' ? 'Manager' : 'Contractor';
 
-      // Add contractor's details to Firestore "Users" collection
-      await setDoc(doc(db, 'Users', contractorUid), {
-        email: contractorEmail,
-        role: 'Contractor',
-        uid: contractorUid,
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, userEmail, userPassword);
+      const userUid = userCredential.user.uid;
+
+      await setDoc(doc(db, 'Users', userUid), {
+        email: userEmail,
+        role: userRole,
+        uid: userUid,
       });
 
-      console.log('Contractor added:', contractorEmail);
-      setShowAddContractorModal(false);
+      console.log(`${userRole} added:`, userEmail);
+      setShowAddUserModal(false);
     } catch (error) {
-      console.error('Error adding contractor:', error.message);
-      alert('Failed to add contractor. Please check the details and try again.');
+      console.error(`Error adding ${userRole}:`, error.message);
+      alert(`Failed to add ${userRole}. Please check the details and try again.`);
     }
   };
 
@@ -96,11 +96,11 @@ export default function Sidebar() {
         </a>
 
         <button
-          onClick={handleAddContractorClick}
+          onClick={handleAddUserClick}
           className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600"
         >
           <FaCog className="text-xl text-yellow-400" />
-          <span className="text-lg">Add Contractor</span>
+          <span className="text-lg">Add {role === 'Admin' ? 'Manager' : 'Contractor'}</span>
         </button>
 
         <button
@@ -130,27 +130,27 @@ export default function Sidebar() {
         </div>
       )}
 
-      {showAddContractorModal && (
+      {showAddUserModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold text-white mb-4">Add Contractor</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Add {role === 'Admin' ? 'Manager' : 'Contractor'}</h2>
             <input
               type="email"
-              placeholder="Contractor Email"
-              value={contractorEmail}
-              onChange={(e) => setContractorEmail(e.target.value)}
+              placeholder={`${role === 'Admin' ? 'Manager' : 'Contractor'} Email`}
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
               className="block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md mb-4"
             />
             <input
               type="password"
-              placeholder="Contractor Password"
-              value={contractorPassword}
-              onChange={(e) => setContractorPassword(e.target.value)}
+              placeholder={`${role === 'Admin' ? 'Manager' : 'Contractor'} Password`}
+              value={userPassword}
+              onChange={(e) => setUserPassword(e.target.value)}
               className="block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md mb-4"
             />
             <div className="flex justify-end space-x-4">
-              <button onClick={() => setShowAddContractorModal(false)} className="px-4 py-2 bg-red-600 rounded-md text-white">Cancel</button>
-              <button onClick={handleAddContractor} className="px-4 py-2 bg-green-600 rounded-md text-white">Add</button>
+              <button onClick={() => setShowAddUserModal(false)} className="px-4 py-2 bg-red-600 rounded-md text-white">Cancel</button>
+              <button onClick={handleAddUser} className="px-4 py-2 bg-green-600 rounded-md text-white">Add</button>
             </div>
           </div>
         </div>

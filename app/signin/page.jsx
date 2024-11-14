@@ -29,6 +29,9 @@ export default function Signin() {
                 else if(docSnap.data().role == 'Manager'){
                     router.push("/manager");
                 }
+                else if(docSnap.data().role == 'Admin'){
+                  router.push("/admin");
+              }
             }
         })
     }
