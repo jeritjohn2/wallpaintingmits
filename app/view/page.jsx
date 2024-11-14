@@ -2,14 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
-import locationsData from '../location.json'; // Adjust the path if needed
-import Image from 'next/image'; // Import Next.js Image component
+import locationsData from '../location.json';
+import Image from 'next/image';
 
-const locations = locationsData.locations; // Access the locations array
+const locations = locationsData.locations;
 
 export default function ViewContractor() {
   const [contractorSessions, setContractorSessions] = useState([]);
@@ -18,8 +18,8 @@ export default function ViewContractor() {
   const [nearestLocationData, setNearestLocationData] = useState(null);
 
   useEffect(() => {
-    const email = localStorage.getItem('selectedContractorEmail'); // Retrieve email from local storage
-    setContractorEmail(email); // Set the contractor's email in state
+    const email = localStorage.getItem('selectedContractorEmail');
+    setContractorEmail(email);
 
     const fetchContractorImages = async () => {
       if (!email) {
@@ -32,12 +32,12 @@ export default function ViewContractor() {
         const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', email));
         const querySnapshot = await getDocs(contractorQuery);
 
-        const sessions = {}; // Group images by session
+        const sessions = {};
 
         if (!querySnapshot.empty) {
           querySnapshot.docs.forEach((doc) => {
             const data = doc.data();
-            const imageUrls = data.url || []; // Get URLs directly from the 'url' array field
+            const imageUrls = data.url || [];
 
             if (!sessions[doc.id]) {
               sessions[doc.id] = { sessionData: data, imageUrls: [] };
@@ -46,9 +46,8 @@ export default function ViewContractor() {
             sessions[doc.id].imageUrls.push(...imageUrls);
           });
 
-          setContractorSessions(Object.values(sessions)); // Convert sessions to an array
+          setContractorSessions(Object.values(sessions));
 
-          // Check the first session's location for nearest place (if location exists)
           if (Object.values(sessions)[0]?.sessionData?.location) {
             const currentLat = Object.values(sessions)[0].sessionData.location._lat;
             const currentLon = Object.values(sessions)[0].sessionData.location._long;
@@ -82,7 +81,7 @@ export default function ViewContractor() {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // Distance in kilometers
+    return R * c;
   };
 
   const findNearestLocation = (currentLat, currentLon) => {
@@ -99,12 +98,27 @@ export default function ViewContractor() {
         nearestLocation = {
           address: location.Address,
           latitude: lat,
-          longitude: lon
+          longitude: lon,
         };
       }
     }
 
     return nearestLocation;
+  };
+
+  const updateStatus = async (sessionId, status) => {
+    try {
+      await updateDoc(doc(db, 'Walls', sessionId), { status });
+      setContractorSessions((prevSessions) =>
+        prevSessions.map((session) =>
+          session.sessionData.wallId === sessionId
+            ? { ...session, sessionData: { ...session.sessionData, status } }
+            : session
+        )
+      );
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
   };
 
   if (loading) {
@@ -150,8 +164,29 @@ export default function ViewContractor() {
                         objectFit="cover"
                         className="rounded-md"
                       />
+                      <div className="mt-2 text-gray-300 text-sm">
+                        <p>Location: {nearestLocationData?.address || 'N/A'}</p>
+                        <p>Latitude: {nearestLocationData?.latitude || 'N/A'}</p>
+                        <p>Longitude: {nearestLocationData?.longitude || 'N/A'}</p>
+                        <p>Timestamp: {session.sessionData.timestamp || 'N/A'}</p>
+                        <p>Description: {session.sessionData.description || 'N/A'}</p>
+                      </div>
                     </div>
                   ))}
+                </div>
+                <div className="flex mt-4 space-x-4">
+                  <button
+                    onClick={() => updateStatus(session.sessionData.wallId, 'APPROVED')}
+                    className="px-4 py-2 bg-green-600 rounded-md text-white"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => updateStatus(session.sessionData.wallId, 'REJECTED')}
+                    className="px-4 py-2 bg-red-600 rounded-md text-white"
+                  >
+                    Reject
+                  </button>
                 </div>
               </div>
             ))
