@@ -86,10 +86,7 @@ export default function Signup() {
               <option value="" disabled>
                 Select your role
               </option>
-              <option value="principal">Head Office</option>
               <option value="Admin">Admin</option>
-              <option value="Manager">Manager</option>
-              <option value="Contractor">Contractor</option>
             </select>
           </div>
 
