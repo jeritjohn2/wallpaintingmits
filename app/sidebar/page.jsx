@@ -1,14 +1,13 @@
-// src/Sidebar.js
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FaHome, FaClipboardList, FaCog, FaUpload } from 'react-icons/fa';
+import { FaHome, FaCog, FaSignOutAlt } from 'react-icons/fa'; // Added FaSignOutAlt for logout
 import { ref, uploadBytesResumable } from 'firebase/storage';
-import { storage } from '../firebase';
+import { storage, auth, db } from '../firebase';
 import { v4 as uuidv4 } from 'uuid';
-import { auth, db } from '../firebase';
 import { doc, arrayUnion, updateDoc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth'; // Added signOut import
+import { useRouter } from 'next/navigation'; // Import useRouter for redirection
 
 export default function Sidebar() {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -17,6 +16,7 @@ export default function Sidebar() {
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [role, setRole] = useState('');
+  const router = useRouter(); // For redirection
 
   useEffect(() => {
     const currRole = localStorage.getItem('currRole');
@@ -68,6 +68,7 @@ export default function Sidebar() {
       const userCredential = await createUserWithEmailAndPassword(auth, userEmail, userPassword);
       const userUid = userCredential.user.uid;
 
+      // Add user details to the Firestore database without affecting the current admin session
       await setDoc(doc(db, 'Users', userUid), {
         email: userEmail,
         role: userRole,
@@ -76,9 +77,24 @@ export default function Sidebar() {
 
       console.log(`${userRole} added:`, userEmail);
       setShowAddUserModal(false);
+
+      // Optionally, clear the form fields
+      setUserEmail('');
+      setUserPassword('');
     } catch (error) {
       console.error(`Error adding ${userRole}:`, error.message);
       alert(`Failed to add ${userRole}. Please check the details and try again.`);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      localStorage.removeItem('currRole'); // Clear the role from local storage
+      router.push('/'); // Redirect to home page
+    } catch (error) {
+      console.error('Error signing out:', error);
+      alert('An error occurred while logging out. Please try again.');
     }
   };
 
@@ -90,11 +106,6 @@ export default function Sidebar() {
           <span className="text-lg">Home</span>
         </a>
 
-        <a href="#" className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600">
-          <FaClipboardList className="text-xl text-green-400" />
-          <span className="text-lg">Tasks</span>
-        </a>
-
         <button
           onClick={handleAddUserClick}
           className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600"
@@ -103,12 +114,13 @@ export default function Sidebar() {
           <span className="text-lg">Add {role === 'Admin' ? 'Manager' : 'Contractor'}</span>
         </button>
 
+        {/* Logout Button */}
         <button
-          onClick={() => setShowUploadModal(true)}
-          className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600"
+          onClick={handleLogout}
+          className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600 mt-4"
         >
-          <FaUpload className="text-xl text-red-400" />
-          <span className="text-lg">Upload</span>
+          <FaSignOutAlt className="text-xl text-red-400" />
+          <span className="text-lg">Logout</span>
         </button>
       </div>
 

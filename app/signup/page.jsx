@@ -2,33 +2,35 @@
 
 import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import {auth, db} from "../firebase"
-import {setDoc, doc} from "firebase/firestore"
+import { auth, db } from "../firebase";
+import { setDoc, doc } from "firebase/firestore";
+import { useRouter } from 'next/navigation';
 
 export default function Signup() {
   // State variables for storing input values
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const router = useRouter();
 
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try{
+    try {
       await createUserWithEmailAndPassword(auth, email, password);
       const user = auth.currentUser;
-      if(user){
-        await setDoc(doc(db, "Users", user.uid),{
+      if (user) {
+        await setDoc(doc(db, "Users", user.uid), {
           uid: user.uid,
           email: user.email,
           role: role,
-        })
-        
+        });
+        window.alert("Signup successful!");
+        router.push('/signin'); // Redirect to sign-in page
       }
-      
-    }
-    catch(error){
-      console.log(error.message)
+    } catch (error) {
+      window.alert(`Error: ${error.message}`);
+      console.log(error.message);
     }
   };
 

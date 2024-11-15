@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import {auth, db} from "../firebase"
-import {doc, getDoc} from "firebase/firestore"
-import {useRouter} from "next/navigation"
+import { auth, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function Signin() {
   // State variables for storing input values
@@ -16,27 +16,32 @@ export default function Signin() {
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try{
-        await signInWithEmailAndPassword(auth, email, password);
-        auth.onAuthStateChanged(async (user) => {
-            const docRef = doc(db, "Users", user.uid);
-            const docSnap = await getDoc(docRef);
-            if(docSnap.exists()){
-                localStorage.setItem('currRole', docSnap.data().role);
-                if(docSnap.data().role == 'Contractor'){
-                    router.push("/contractor");
-                }
-                else if(docSnap.data().role == 'Manager'){
-                    router.push("/manager");
-                }
-                else if(docSnap.data().role == 'Admin'){
-                  router.push("/admin");
-              }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          const docRef = doc(db, "Users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            localStorage.setItem('currRole', docSnap.data().role);
+            window.alert("Sign-in successful!");
+
+            // Redirect based on role
+            if (docSnap.data().role === 'Contractor') {
+              router.push("/contractor");
+            } else if (docSnap.data().role === 'Manager') {
+              router.push("/manager");
+            } else if (docSnap.data().role === 'Admin') {
+              router.push("/admin");
             }
-        })
-    }
-    catch(error){
-        console.log(error.message);
+          } else {
+            window.alert("User data not found.");
+          }
+        }
+      });
+    } catch (error) {
+      window.alert(`Sign-in failed: ${error.message}`);
+      console.log(error.message);
     }
   };
 
