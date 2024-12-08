@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
@@ -11,6 +11,8 @@ export default function Manager() {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showAddContractorModal, setShowAddContractorModal] = useState(false);
+  const [newContractorEmail, setNewContractorEmail] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -49,7 +51,25 @@ export default function Manager() {
 
   const handleCardClick = (contractorEmail) => {
     localStorage.setItem('selectedContractorEmail', contractorEmail);
-    router.push('/view');
+    router.push('/view'); // Only redirect when explicitly needed, not when adding contractors
+  };
+
+  const handleAddContractor = async () => {
+    try {
+      // Add a new contractor to the Firestore database
+      await addDoc(collection(db, 'Walls'), {
+        contractorEmail: newContractorEmail,
+        // You can add other relevant fields here
+      });
+
+      // After adding the contractor, reset the email and close the modal
+      setNewContractorEmail('');
+      setShowAddContractorModal(false);
+      alert('Contractor added successfully');
+    } catch (error) {
+      console.error('Error adding contractor:', error.message);
+      alert('Failed to add contractor. Please try again.');
+    }
   };
 
   if (loading) {
@@ -102,6 +122,37 @@ export default function Manager() {
             <p className="text-gray-300 text-lg text-center">No contractors found</p>
           )}
         </div>
+        
+        {/* Add Contractor Modal */}
+        {showAddContractorModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md">
+              <h2 className="text-2xl font-bold text-white mb-4">Add Contractor</h2>
+              <input
+                type="email"
+                placeholder="Contractor's Email"
+                value={newContractorEmail}
+                onChange={(e) => setNewContractorEmail(e.target.value)}
+                className="block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md mb-4"
+              />
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setShowAddContractorModal(false)}
+                  className="px-4 py-2 bg-red-600 rounded-md text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddContractor}
+                  className="px-4 py-2 bg-green-600 rounded-md text-white"
+                >
+                  Add Contractor
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

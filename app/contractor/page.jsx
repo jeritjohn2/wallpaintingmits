@@ -1,4 +1,3 @@
-// src/Home.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -81,7 +80,9 @@ export default function Home() {
                     <Image
                       src={imageUrl}
                       alt={`Photo ${index + 1}`}
-                      className="w-32 h-32 object-cover rounded-md"
+                      width={128}  // Set width for the image
+                      height={128} // Set height for the image
+                      className="object-cover rounded-md"
                     />
                   </a>
                 </div>
