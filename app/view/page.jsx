@@ -147,6 +147,9 @@ export default function ViewContractor() {
                 <h2 className="text-lg font-semibold text-gray-300 mb-3">
                   Wall ID: {session.sessionData.wallId} - Status: {session.sessionData.status}
                 </h2>
+                <div className="text-gray-300 mb-4">
+                  <p>Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
+                </div>
                 {nearestLocationData && (
                   <div className="text-gray-300 mb-4">
                     <p>Nearest Location: {nearestLocationData.address}</p>
@@ -156,7 +159,10 @@ export default function ViewContractor() {
                 )}
                 <div className="flex flex-wrap gap-4">
                   {session.imageUrls.map((url, imgIndex) => (
-                    <div key={`${sessionIndex}-${imgIndex}`} className="relative w-32 h-32 overflow-hidden border border-gray-700 rounded-lg">
+                    <div
+                      key={`${sessionIndex}-${imgIndex}`}
+                      className="relative w-32 h-32 overflow-hidden border border-gray-700 rounded-lg"
+                    >
                       <Image
                         src={url}
                         alt={`Contractor Image ${imgIndex + 1}`}
