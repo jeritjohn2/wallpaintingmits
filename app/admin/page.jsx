@@ -11,6 +11,8 @@ export default function Admin() {
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [managerToDelete, setManagerToDelete] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,20 +47,30 @@ export default function Admin() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleDeleteManager = async (managerId) => {
-    try {
-      // Step 1: Delete the manager from Firestore (Users collection)
-      await deleteDoc(doc(db, 'Users', managerId));
-      console.log(`Deleted manager with ID: ${managerId} from Firestore`);
+  const handleDeleteManager = async () => {
+    if (!managerToDelete) return;
 
-      // Step 2: Remove the deleted manager from the UI state
+    try {
+      // Delete the manager from Firestore
+      await deleteDoc(doc(db, 'Users', managerToDelete));
+      console.log(`Deleted manager with ID: ${managerToDelete} from Firestore`);
+
+      // Remove the deleted manager from the UI state
       setManagers((prevManagers) =>
-        prevManagers.filter((manager) => manager.id !== managerId)
+        prevManagers.filter((manager) => manager.id !== managerToDelete)
       );
+
+      setShowDeleteModal(false);
+      setManagerToDelete(null);
     } catch (error) {
       console.error('Error deleting manager:', error);
       setErrorMessage('Failed to delete manager.');
     }
+  };
+
+  const confirmDelete = (managerId) => {
+    setManagerToDelete(managerId);
+    setShowDeleteModal(true);
   };
 
   if (loading) {
@@ -87,17 +99,23 @@ export default function Admin() {
             managers.map((manager) => (
               <div
                 key={manager.id}
-                className="bg-gray-800 rounded-lg shadow-lg p-4 w-48 h-48 flex flex-col items-center justify-center"
+                className="bg-gray-800 rounded-lg shadow-lg p-6 w-64 h-72 flex flex-col items-center justify-between transition-transform duration-300 transform hover:scale-105"
               >
-                <p className="text-gray-300 text-[0.8rem] font-semibold text-center mb-2">
-                  {manager.email}
-                </p>
-                <button
-                  onClick={() => handleDeleteManager(manager.id)}
-                  className="mt-2 px-4 py-1 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  Delete
-                </button>
+                {/* Container for centering email */}
+                <div className="flex flex-1 justify-center items-center">
+                  <p className="text-gray-300 text-[0.9rem] font-semibold text-center">
+                    {manager.email}
+                  </p>
+                </div>
+
+                <div className="w-full flex justify-center mt-auto">
+                  <button
+                    onClick={() => confirmDelete(manager.id)}
+                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md w-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    Delete Manager
+                  </button>
+                </div>
               </div>
             ))
           ) : (
@@ -105,6 +123,32 @@ export default function Admin() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm">
+            <h2 className="text-white text-lg font-semibold mb-4">Confirm Deletion</h2>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this manager? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteManager}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

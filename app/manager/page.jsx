@@ -1,36 +1,34 @@
-// src/Manager.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db } from '../firebase'; // Assuming you still need to access Firestore
+import { collection, onSnapshot, query, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
 
 export default function Manager() {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [contractorToDelete, setContractorToDelete] = useState(null);
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState(''); // State to store error messages
 
-  // Check user's role from local storage
   useEffect(() => {
     const role = localStorage.getItem('currRole');
 
     if (role !== 'Manager') {
-      // If not a manager, set an error message and exit early
       setErrorMessage('You must be logged in as a manager to view this page.');
-      setLoading(false); // Set loading to false since we are done processing
-      return; // Exit the useEffect if not a manager
+      setLoading(false);
+      return;
     }
 
-    // Fetch contractors if the user is a manager
     const unsubscribe = onSnapshot(
       query(collection(db, 'Walls')),
       (querySnapshot) => {
         const fetchedContractors = [];
-        const uniqueEmails = new Set(); // Set to keep track of unique emails
+        const uniqueEmails = new Set();
 
         querySnapshot.docs.forEach((doc) => {
           const contractorEmail = doc.data().contractorEmail;
@@ -44,7 +42,7 @@ export default function Manager() {
         });
 
         setContractors(fetchedContractors);
-        setLoading(false); // Set loading to false once data is fetched
+        setLoading(false);
       }
     );
 
@@ -53,7 +51,31 @@ export default function Manager() {
 
   const handleCardClick = (contractorEmail) => {
     localStorage.setItem('selectedContractorEmail', contractorEmail);
-    router.push("/view");
+    router.push('/view');
+  };
+
+  const confirmDelete = (contractorId) => {
+    setContractorToDelete(contractorId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteContractor = async () => {
+    if (!contractorToDelete) return;
+
+    try {
+      await deleteDoc(doc(db, 'Walls', contractorToDelete));
+      console.log(`Deleted contractor with ID: ${contractorToDelete}`);
+
+      setContractors((prevContractors) =>
+        prevContractors.filter((contractor) => contractor.id !== contractorToDelete)
+      );
+
+      setShowDeleteModal(false);
+      setContractorToDelete(null);
+    } catch (error) {
+      console.error('Error deleting contractor:', error);
+      setErrorMessage('Failed to delete contractor.');
+    }
   };
 
   if (loading) {
@@ -77,17 +99,29 @@ export default function Manager() {
       <Navbar />
       <Sidebar />
       <div className="ml-64 pt-16 w-full p-8">
-        <div className="flex flex-wrap justify-start gap-6 p-4">
+        <div className="flex flex-wrap justify-start gap-8 p-4">
           {contractors.length > 0 ? (
             contractors.map((contractor) => (
               <div
                 key={contractor.id}
-                className="bg-gray-800 rounded-lg shadow-lg p-4 cursor-pointer w-48 h-48 flex items-center justify-center"
-                onClick={() => handleCardClick(contractor.contractorEmail)}
+                className="bg-gray-800 rounded-lg shadow-lg w-64 h-64 flex flex-col justify-between transition-transform duration-300 transform hover:scale-105"
               >
-                <p className="text-gray-300 text-[0.8rem] font-semibold text-center">
-                  {contractor.contractorEmail}
-                </p>
+                <div className="flex flex-1 justify-center items-center">
+                  <p
+                    className="text-gray-300 text-base font-semibold text-center cursor-pointer"
+                    onClick={() => handleCardClick(contractor.contractorEmail)}
+                  >
+                    {contractor.contractorEmail}
+                  </p>
+                </div>
+                <div className="w-full p-4">
+                  <button
+                    onClick={() => confirmDelete(contractor.id)}
+                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md w-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           ) : (
@@ -95,6 +129,31 @@ export default function Manager() {
           )}
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm">
+            <h2 className="text-white text-lg font-semibold mb-4">Confirm Deletion</h2>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this contractor? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteContractor}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
