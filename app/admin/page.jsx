@@ -107,15 +107,6 @@ export default function Admin() {
                     {manager.email}
                   </p>
                 </div>
-
-                <div className="w-full flex justify-center mt-auto">
-                  <button
-                    onClick={() => confirmDelete(manager.id)}
-                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md w-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    Delete Manager
-                  </button>
-                </div>
               </div>
             ))
           ) : (
@@ -123,32 +114,6 @@ export default function Admin() {
           )}
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm">
-            <h2 className="text-white text-lg font-semibold mb-4">Confirm Deletion</h2>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete this manager? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteManager}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

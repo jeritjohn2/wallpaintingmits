@@ -1,13 +1,13 @@
-// src/ViewContractor.js
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
 import locationsData from '../location.json';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const locations = locationsData.locations;
 
@@ -16,8 +16,14 @@ export default function ViewContractor() {
   const [contractorEmail, setContractorEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [nearestLocationData, setNearestLocationData] = useState(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [isClient, setIsClient] = useState(false); // Track if the code is running on the client
+
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
+    setIsClient(true); // Set to true once the component is mounted
+
     const email = localStorage.getItem('selectedContractorEmail');
     setContractorEmail(email);
 
@@ -121,6 +127,26 @@ export default function ViewContractor() {
     }
   };
 
+  const deleteContractor = async () => {
+    try {
+      const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', contractorEmail));
+      const querySnapshot = await getDocs(contractorQuery);
+
+      // Delete each document
+      const deletePromises = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+
+      setShowDeletePopup(false);
+      alert('Contractor and associated data deleted successfully.');
+
+      if (isClient) {
+        router.push('/manager'); // Redirect to the manager page only after mounting
+      }
+    } catch (error) {
+      console.error('Error deleting contractor:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -147,36 +173,35 @@ export default function ViewContractor() {
                 <h2 className="text-lg font-semibold text-gray-300 mb-3">
                   Wall ID: {session.sessionData.wallId} - Status: {session.sessionData.status}
                 </h2>
-                <div className="text-gray-300 mb-4">
-                  <p>Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
-                </div>
+
+                {/* Add model status */}
+                <p className="text-gray-300">Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
+
+                {/* Add latitude and longitude */}
+                <p className="text-gray-300">Latitude: {session.sessionData.location?._lat || 'N/A'}</p>
+                <p className="text-gray-300">Longitude: {session.sessionData.location?._long || 'N/A'}</p>
+
+                {/* Nearest Location */}
                 {nearestLocationData && (
-                  <div className="text-gray-300 mb-4">
-                    <p>Nearest Location: {nearestLocationData.address}</p>
-                    <p>Latitude: {nearestLocationData.latitude}</p>
-                    <p>Longitude: {nearestLocationData.longitude}</p>
+                  <div className="mt-2">
+                    <p className="text-gray-300">
+                      Nearest Location: {nearestLocationData.address} ({nearestLocationData.latitude}, {nearestLocationData.longitude})
+                    </p>
                   </div>
                 )}
+
                 <div className="flex flex-wrap gap-4">
                   {session.imageUrls.map((url, imgIndex) => (
                     <div
-                      key={`${sessionIndex}-${imgIndex}`}
-                      className="relative w-32 h-32 overflow-hidden border border-gray-700 rounded-lg"
+                      key={imgIndex}
+                      className="relative w-32 h-32 cursor-pointer"
+                      onClick={() => {
+                        const encodedUrl = encodeURIComponent(url);
+                        window.open(decodeURIComponent(encodedUrl), '_blank');
+                      }}
+ // Redirect with image URL
                     >
-                      <Image
-                        src={url}
-                        alt={`Contractor Image ${imgIndex + 1}`}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-md"
-                      />
-                      <div className="mt-2 text-gray-300 text-sm">
-                        <p>Location: {nearestLocationData?.address || 'N/A'}</p>
-                        <p>Latitude: {nearestLocationData?.latitude || 'N/A'}</p>
-                        <p>Longitude: {nearestLocationData?.longitude || 'N/A'}</p>
-                        <p>Timestamp: {session.sessionData.timestamp || 'N/A'}</p>
-                        <p>Description: {session.sessionData.description || 'N/A'}</p>
-                      </div>
+                      <Image src={url} alt={`Image ${imgIndex}`} layout="fill" objectFit="cover" />
                     </div>
                   ))}
                 </div>
@@ -200,6 +225,37 @@ export default function ViewContractor() {
             <p className="text-gray-300">No images available for this contractor.</p>
           )}
         </div>
+
+        <div className="mt-8">
+          <button
+            onClick={() => setShowDeletePopup(true)}
+            className="px-6 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
+          >
+            Delete Contractor
+          </button>
+        </div>
+
+        {showDeletePopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h2 className="text-gray-300 mb-4">Are you sure you want to delete this contractor?</h2>
+              <div className="flex space-x-4">
+                <button
+                  onClick={deleteContractor}
+                  className="px-6 py-2 bg-red-600 rounded-md text-white"
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => setShowDeletePopup(false)}
+                  className="px-6 py-2 bg-gray-600 rounded-md text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

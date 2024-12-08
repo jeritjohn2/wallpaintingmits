@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, onSnapshot, query, deleteDoc, doc } from 'firebase/firestore';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
@@ -11,8 +11,6 @@ export default function Manager() {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [contractorToDelete, setContractorToDelete] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -54,30 +52,6 @@ export default function Manager() {
     router.push('/view');
   };
 
-  const confirmDelete = (contractorId) => {
-    setContractorToDelete(contractorId);
-    setShowDeleteModal(true);
-  };
-
-  const handleDeleteContractor = async () => {
-    if (!contractorToDelete) return;
-
-    try {
-      await deleteDoc(doc(db, 'Walls', contractorToDelete));
-      console.log(`Deleted contractor with ID: ${contractorToDelete}`);
-
-      setContractors((prevContractors) =>
-        prevContractors.filter((contractor) => contractor.id !== contractorToDelete)
-      );
-
-      setShowDeleteModal(false);
-      setContractorToDelete(null);
-    } catch (error) {
-      console.error('Error deleting contractor:', error);
-      setErrorMessage('Failed to delete contractor.');
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -116,10 +90,10 @@ export default function Manager() {
                 </div>
                 <div className="w-full p-4">
                   <button
-                    onClick={() => confirmDelete(contractor.id)}
-                    className="px-4 py-2 bg-red-600 text-white font-semibold rounded-md w-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    onClick={() => handleCardClick(contractor.contractorEmail)}
+                    className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md w-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Delete
+                    View
                   </button>
                 </div>
               </div>
@@ -129,31 +103,6 @@ export default function Manager() {
           )}
         </div>
       </div>
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-sm">
-            <h2 className="text-white text-lg font-semibold mb-4">Confirm Deletion</h2>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete this contractor? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteContractor}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
