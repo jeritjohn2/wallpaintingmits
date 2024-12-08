@@ -17,12 +17,12 @@ export default function ViewContractor() {
   const [loading, setLoading] = useState(true);
   const [nearestLocationData, setNearestLocationData] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const [isClient, setIsClient] = useState(false); // Track if the code is running on the client
+  const [isClient, setIsClient] = useState(false);
 
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useEffect(() => {
-    setIsClient(true); // Set to true once the component is mounted
+    setIsClient(true);
 
     const email = localStorage.getItem('selectedContractorEmail');
     setContractorEmail(email);
@@ -132,7 +132,6 @@ export default function ViewContractor() {
       const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', contractorEmail));
       const querySnapshot = await getDocs(contractorQuery);
 
-      // Delete each document
       const deletePromises = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
       await Promise.all(deletePromises);
 
@@ -140,7 +139,7 @@ export default function ViewContractor() {
       alert('Contractor and associated data deleted successfully.');
 
       if (isClient) {
-        router.push('/manager'); // Redirect to the manager page only after mounting
+        router.push('/manager');
       }
     } catch (error) {
       console.error('Error deleting contractor:', error);
@@ -158,9 +157,17 @@ export default function ViewContractor() {
   return (
     <div className="min-h-screen bg-gray-900 flex">
       <Sidebar />
-      <div className="flex flex-col items-start p-8 w-full ml-64">
+      <div className="flex flex-col items-start p-5 w-full ml-64">
         <Navbar />
-        <h1 className="text-gray-300 text-2xl font-semibold mb-5 mt-11">Images taken by {contractorEmail}</h1>
+        <button
+          onClick={() => router.push('/manager')}
+          className="bg-blue-600 text-white px-4 py-2 mt-[15vh] rounded-md mb-1 hover:bg-blue-700"
+        >
+          Go Back
+        </button>
+        <h1 className="text-gray-300 text-2xl font-semibold mb-5 mt-11">
+          Images taken by {contractorEmail}
+        </h1>
         <div className="flex flex-col gap-6 w-full">
           {contractorSessions.length > 0 ? (
             contractorSessions.map((session, sessionIndex) => (
@@ -174,14 +181,10 @@ export default function ViewContractor() {
                   Wall ID: {session.sessionData.wallId} - Status: {session.sessionData.status}
                 </h2>
 
-                {/* Add model status */}
                 <p className="text-gray-300">Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
-
-                {/* Add latitude and longitude */}
                 <p className="text-gray-300">Latitude: {session.sessionData.location?._lat || 'N/A'}</p>
                 <p className="text-gray-300">Longitude: {session.sessionData.location?._long || 'N/A'}</p>
 
-                {/* Nearest Location */}
                 {nearestLocationData && (
                   <div className="mt-2">
                     <p className="text-gray-300">
@@ -199,7 +202,6 @@ export default function ViewContractor() {
                         const encodedUrl = encodeURIComponent(url);
                         window.open(decodeURIComponent(encodedUrl), '_blank');
                       }}
- // Redirect with image URL
                     >
                       <Image src={url} alt={`Image ${imgIndex}`} layout="fill" objectFit="cover" />
                     </div>
