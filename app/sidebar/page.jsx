@@ -18,10 +18,13 @@ export default function Sidebar() {
   const [role, setRole] = useState('');
   const router = useRouter();
 
+  // Load role from localStorage on initial load
   useEffect(() => {
     const currRole = localStorage.getItem('currRole');
-    setRole(currRole);
-  }, []);
+    if (currRole) {
+      setRole(currRole);
+    }
+  }, []); // Run only once when the component is first mounted
 
   const handleFileChange = (e) => setImage(e.target.files[0]);
 
@@ -77,11 +80,13 @@ export default function Sidebar() {
 
       console.log(`${userRole} added:`, userEmail);
       alert(`${userRole} successfully added: ${userEmail}`);
-      setShowAddUserModal(false);
+      console.log(localStorage.getItem('currRole'));
 
-      // Clear the form fields
+      // Close the modal and clear form fields
+      setShowAddUserModal(false);
       setUserEmail('');
       setUserPassword('');
+
     } catch (error) {
       console.error(`Error adding ${userRole}:`, error.message);
       alert(`Failed to add ${userRole}. Please check the details and try again.`);

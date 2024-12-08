@@ -1,8 +1,7 @@
-'use client';
-
+'use client'
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot, addDoc, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase'; // Make sure `auth` is imported for authentication
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
@@ -15,6 +14,8 @@ export default function Admin() {
   const [showAddManagerModal, setShowAddManagerModal] = useState(false);
   const [newManagerEmail, setNewManagerEmail] = useState('');
   const [newManagerPassword, setNewManagerPassword] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [managerToDelete, setManagerToDelete] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -75,6 +76,26 @@ export default function Admin() {
     }
   };
 
+  const handleDeleteManager = async () => {
+    if (managerToDelete) {
+      try {
+        // Remove the manager's document from Firestore
+        const userRef = doc(db, 'Users', managerToDelete.id);
+        await deleteDoc(userRef);
+
+        console.log('Manager deleted:', managerToDelete.email);
+        setManagers((prevManagers) =>
+          prevManagers.filter((manager) => manager.id !== managerToDelete.id)
+        );
+        setShowDeleteConfirmation(false); // Close the confirmation modal
+        alert('Manager successfully deleted');
+      } catch (error) {
+        console.error('Error deleting manager:', error.message);
+        alert('Failed to delete manager. Please try again.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -108,13 +129,22 @@ export default function Admin() {
                     {manager.email}
                   </p>
                 </div>
+                <button
+                  onClick={() => {
+                    setManagerToDelete(manager);
+                    setShowDeleteConfirmation(true);
+                  }}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md"
+                >
+                  Delete Manager
+                </button>
               </div>
             ))
           ) : (
             <p className="text-gray-300 text-lg text-center">No managers found</p>
           )}
         </div>
-        
+
         {/* Modal for adding a new manager */}
         {showAddManagerModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -152,6 +182,31 @@ export default function Admin() {
           </div>
         )}
 
+        {/* Confirmation Modal for Deletion */}
+        {showDeleteConfirmation && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md">
+              <h2 className="text-2xl font-bold text-white mb-4">Confirm Deletion</h2>
+              <p className="text-white mb-4">
+                Are you sure you want to delete {managerToDelete?.email}?
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setShowDeleteConfirmation(false)}
+                  className="px-4 py-2 bg-red-600 rounded-md text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteManager}
+                  className="px-4 py-2 bg-green-600 rounded-md text-white"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
