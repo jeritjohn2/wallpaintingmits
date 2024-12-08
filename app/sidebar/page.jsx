@@ -124,26 +124,9 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md">
-            <h2 className="text-2xl font-bold text-white mb-4">Upload Photo</h2>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="block w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-md mb-4"
-            />
-            {image && <p className="text-gray-300 mb-4">Selected file: <span className="text-white">{image.name}</span></p>}
-            <div className="flex justify-end space-x-4">
-              <button onClick={() => setShowUploadModal(false)} className="px-4 py-2 bg-red-600 rounded-md text-white">Cancel</button>
-              <button onClick={upload} className="px-4 py-2 bg-blue-600 rounded-md text-white">Upload</button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
           <div className="bg-gray-800 rounded-lg p-8 w-full max-w-md">
             <h2 className="text-2xl font-bold text-white mb-4">Add {role === 'Admin' ? 'Manager' : 'Contractor'}</h2>
             <input

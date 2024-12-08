@@ -69,7 +69,7 @@ export default function Manager() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
+    <div className="min-h-screen bg-gray-900 relative flex">
       <Navbar />
       <Sidebar />
       <div className="ml-64 pt-16 w-full p-8">
@@ -78,7 +78,7 @@ export default function Manager() {
             contractors.map((contractor) => (
               <div
                 key={contractor.id}
-                className="bg-gray-800 rounded-lg shadow-lg w-64 h-64 flex flex-col justify-between transition-transform duration-300 transform hover:scale-105"
+                className="bg-gray-800 rounded-lg shadow-lg w-64 h-64 flex flex-col justify-between"
               >
                 <div className="flex flex-1 justify-center items-center">
                   <p

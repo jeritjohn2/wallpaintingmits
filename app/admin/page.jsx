@@ -73,7 +73,7 @@ export default function Admin() {
             managers.map((manager) => (
               <div
                 key={manager.id}
-                className="bg-gray-800 rounded-lg shadow-lg p-6 w-64 h-72 flex flex-col items-center justify-between transition-transform duration-300 transform hover:scale-105"
+                className="bg-gray-800 rounded-lg shadow-lg p-6 w-64 h-72 flex flex-col items-center justify-between"
               >
                 {/* Container for centering email */}
                 <div className="flex flex-1 justify-center items-center">
