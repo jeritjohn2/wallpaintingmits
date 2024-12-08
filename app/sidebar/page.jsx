@@ -2,17 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { ref, uploadBytesResumable } from 'firebase/storage';
-import { storage, auth, db } from '../firebase';
-import { v4 as uuidv4 } from 'uuid';
-import { doc, arrayUnion, updateDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function Sidebar() {
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [image, setImage] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [userPassword, setUserPassword] = useState('');
   const [role, setRole] = useState('');
@@ -26,35 +22,8 @@ export default function Sidebar() {
     }
   }, []); // Run only once when the component is first mounted
 
-  const handleFileChange = (e) => setImage(e.target.files[0]);
 
-  const upload = () => {
-    if (image) {
-      const path = `images/${uuidv4()}_${image.name}`;
-      const storageRef = ref(storage, path);
-      const uploadTask = uploadBytesResumable(storageRef, image);
-
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload is ${progress}% done`);
-        },
-        (error) => console.error(error.message),
-        async () => {
-          const user = auth.currentUser;
-          if (user) {
-            await updateDoc(doc(db, 'Walls', user.uid), {
-              imageid: arrayUnion(path),
-            });
-          }
-          setShowUploadModal(false);
-        }
-      );
-    } else {
-      alert('Please select a file to upload.');
-    }
-  };
+  
 
   const handleAddUserClick = () => {
     if (role === 'Manager' || role === 'Admin') {
