@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import Navbar from '../navbar/page';
 import Sidebar from '../sidebar/page';
@@ -11,8 +11,6 @@ export default function Admin() {
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [managerToDelete, setManagerToDelete] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,31 +45,7 @@ export default function Admin() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleDeleteManager = async () => {
-    if (!managerToDelete) return;
-
-    try {
-      // Delete the manager from Firestore
-      await deleteDoc(doc(db, 'Users', managerToDelete));
-      console.log(`Deleted manager with ID: ${managerToDelete} from Firestore`);
-
-      // Remove the deleted manager from the UI state
-      setManagers((prevManagers) =>
-        prevManagers.filter((manager) => manager.id !== managerToDelete)
-      );
-
-      setShowDeleteModal(false);
-      setManagerToDelete(null);
-    } catch (error) {
-      console.error('Error deleting manager:', error);
-      setErrorMessage('Failed to delete manager.');
-    }
-  };
-
-  const confirmDelete = (managerId) => {
-    setManagerToDelete(managerId);
-    setShowDeleteModal(true);
-  };
+  
 
   if (loading) {
     return (
