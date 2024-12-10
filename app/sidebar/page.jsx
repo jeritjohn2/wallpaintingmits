@@ -54,6 +54,8 @@ export default function Sidebar() {
       await signInWithEmailAndPassword(auth, localStorage.getItem('oldEmail'), localStorage.getItem('oldPass'));
       console.log(localStorage.getItem('oldEmail'));
       console.log(localStorage.getItem('oldPass'));
+      localStorage.setItem('currRole', localStorage.getItem('oldEmail'));
+      localStorage.setItem('currEmail', localStorage.getItem('oldEmail'));
 
       // Close the modal and clear form fields
       setShowAddUserModal(false);
