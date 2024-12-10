@@ -7,12 +7,12 @@ export default function Home() {
         {/* Heading */}
 
         {/* Sign Up Button */}
-        <Link
+        {/* <Link
           href="/signup"
           className="w-[20vw] bg-blue-600 text-white text-2xl py-6 rounded-lg text-center shadow-xl transform hover:scale-105 transition duration-300 ease-in-out"
         >
           Sign Up
-        </Link>
+        </Link> */}
 
         {/* Sign In Button */}
         <Link

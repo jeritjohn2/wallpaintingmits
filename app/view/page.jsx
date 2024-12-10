@@ -156,25 +156,27 @@ export default function ViewContractor() {
           onClick={() => router.push('/manager')}
           className="bg-blue-600 text-white px-4 py-2 mt-[15vh] rounded-md mb-1 hover:bg-blue-700"
         >
-          Go Back
+          Back
         </button>
         <h1 className="text-gray-300 text-2xl font-semibold mb-5 mt-11">
           Images taken by {contractorEmail}
         </h1>
         <div className="flex flex-col gap-6 w-full">
-          {contractorSessions.length > 0 ? (
+        {contractorSessions.length > 0 ? (
             contractorSessions.map((session, sessionIndex) => (
               <div
                 key={sessionIndex}
                 className={`border border-gray-600 rounded-lg p-6 mb-4 ${
+                  session.sessionData.status === 'PENDING' ? 'bg-orange-600':null
+                }  ${
                   session.sessionData.status === 'APPROVED' ? 'bg-green-700' : 'bg-red-700'
-                }`}
+                } `}
               >
-                <h2 className="text-lg font-semibold text-gray-300 mb-3">
-                  Wall ID: {session.sessionData.wallId} - Status: {session.sessionData.status}
+                <h2 className={`text-lg font-semibold text-gray-300 mb-3`}>
+                  Wall ID: {session.sessionData.wallId} - Final Status: {session.sessionData.status}
                 </h2>
 
-                <p className="text-gray-300">Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
+                <p className="text-gray-300 font-bold">Model Status: {session.sessionData.modelStatus || 'N/A'}</p>
                 <p className="text-gray-300">Latitude: {session.sessionData.location?._lat || 'N/A'}</p>
                 <p className="text-gray-300">Longitude: {session.sessionData.location?._long || 'N/A'}</p>
 

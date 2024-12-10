@@ -97,10 +97,10 @@ export default function Sidebar() {
   return (
     <div className="min-h-screen w-64 bg-gray-800 shadow-lg text-white pt-16 fixed top-0 left-0">
       <div className="flex flex-col space-y-6 mt-8 px-4">
-        <a href="/" className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600">
+        {/* <a href="/" className="flex items-center space-x-3 p-3 rounded-md bg-gray-700 hover:bg-gray-600">
           <FaHome className="text-xl text-blue-400" />
           <span className="text-lg">Home</span>
-        </a>
+        </a> */}
 
         <button
           onClick={handleAddUserClick}
