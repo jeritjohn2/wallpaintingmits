@@ -5,6 +5,7 @@ import { FaHome, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { auth, db } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 export default function Sidebar() {
@@ -46,11 +47,13 @@ export default function Sidebar() {
         role: userRole,
         uid: userUid,
       });
-      signOut(auth);
       console.log(`${userRole} added:`, userEmail);
       alert(`${userRole} successfully added: ${userEmail}`);
       setShowAddUserModal(false);
-      console.log(localStorage.getItem('currRole'));
+      signOut(auth);
+      await signInWithEmailAndPassword(auth, localStorage.getItem('oldEmail'), localStorage.getItem('oldPass'));
+      console.log(localStorage.getItem('oldEmail'));
+      console.log(localStorage.getItem('oldPass'));
 
       // Close the modal and clear form fields
       setShowAddUserModal(false);
