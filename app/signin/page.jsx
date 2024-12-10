@@ -24,6 +24,7 @@ export default function Signin() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             localStorage.setItem('currRole', docSnap.data().role);
+            localStorage.setItem('currEmail', docSnap.data().email);
             window.alert("Sign-in successful!");
 
             // Redirect based on role

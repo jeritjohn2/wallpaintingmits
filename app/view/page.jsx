@@ -16,7 +16,7 @@ export default function ViewContractor() {
   const [contractorEmail, setContractorEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [nearestLocationData, setNearestLocationData] = useState(null);
-  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [deleteWallId, setDeleteWallId] = useState(null);
   const [isClient, setIsClient] = useState(false);
 
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function ViewContractor() {
             const imageUrls = data.url || [];
 
             if (!sessions[doc.id]) {
-              sessions[doc.id] = { sessionData: data, imageUrls: [] };
+              sessions[doc.id] = { sessionData: data, imageUrls: [], wallId: doc.id };
             }
 
             sessions[doc.id].imageUrls.push(...imageUrls);
@@ -127,22 +127,15 @@ export default function ViewContractor() {
     }
   };
 
-  const deleteContractor = async () => {
+  const deleteWall = async (wallId) => {
     try {
-      const contractorQuery = query(collection(db, 'Walls'), where('contractorEmail', '==', contractorEmail));
-      const querySnapshot = await getDocs(contractorQuery);
-
-      const deletePromises = querySnapshot.docs.map((doc) => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
-
-      setShowDeletePopup(false);
-      alert('Contractor and associated data deleted successfully.');
-
-      if (isClient) {
-        router.push('/manager');
-      }
+      await deleteDoc(doc(db, 'Walls', wallId));
+      setContractorSessions((prevSessions) =>
+        prevSessions.filter((session) => session.wallId !== wallId)
+      );
+      setDeleteWallId(null);
     } catch (error) {
-      console.error('Error deleting contractor:', error);
+      console.error('Error deleting wall:', error);
     }
   };
 
@@ -220,6 +213,12 @@ export default function ViewContractor() {
                   >
                     Reject
                   </button>
+                  <button
+                    onClick={() => setDeleteWallId(session.wallId)}
+                    className="px-4 py-2 bg-red-600 rounded-md text-white"
+                  >
+                    Delete Wall
+                  </button>
                 </div>
               </div>
             ))
@@ -228,28 +227,19 @@ export default function ViewContractor() {
           )}
         </div>
 
-        <div className="mt-8">
-          <button
-            onClick={() => setShowDeletePopup(true)}
-            className="px-6 py-2 bg-red-600 rounded-md text-white hover:bg-red-700"
-          >
-            Delete Contractor
-          </button>
-        </div>
-
-        {showDeletePopup && (
+        {deleteWallId && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-gray-800 p-6 rounded-lg">
-              <h2 className="text-gray-300 mb-4">Are you sure you want to delete this contractor?</h2>
+              <h2 className="text-gray-300 mb-4">Are you sure you want to delete this wall?</h2>
               <div className="flex space-x-4">
                 <button
-                  onClick={deleteContractor}
+                  onClick={() => deleteWall(deleteWallId)}
                   className="px-6 py-2 bg-red-600 rounded-md text-white"
                 >
                   Yes, Delete
                 </button>
                 <button
-                  onClick={() => setShowDeletePopup(false)}
+                  onClick={() => setDeleteWallId(null)}
                   className="px-6 py-2 bg-gray-600 rounded-md text-white"
                 >
                   Cancel
