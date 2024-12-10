@@ -169,8 +169,11 @@ export default function ViewContractor() {
                 className={`border border-gray-600 rounded-lg p-6 mb-4 ${
                   session.sessionData.status === 'PENDING' ? 'bg-orange-600':null
                 }  ${
-                  session.sessionData.status === 'APPROVED' ? 'bg-green-700' : 'bg-red-700'
-                } `}
+                  session.sessionData.status === 'APPROVED' ? 'bg-green-700' : null
+                } 
+                ${
+                  session.sessionData.status === 'REJECTED' ? 'bg-red-700' : null
+                }`}
               >
                 <h2 className={`text-lg font-semibold text-gray-300 mb-3`}>
                   Wall ID: {session.sessionData.wallId} - Final Status: {session.sessionData.status}
