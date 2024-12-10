@@ -46,9 +46,10 @@ export default function Sidebar() {
         role: userRole,
         uid: userUid,
       });
-
+      signOut(auth);
       console.log(`${userRole} added:`, userEmail);
       alert(`${userRole} successfully added: ${userEmail}`);
+      setShowAddUserModal(false);
       console.log(localStorage.getItem('currRole'));
 
       // Close the modal and clear form fields
