@@ -27,6 +27,7 @@ export default function Signin() {
             localStorage.setItem('currEmail', docSnap.data().email);
             localStorage.setItem('oldEmail', email);
             localStorage.setItem('oldPass', password);
+            localStorage.setItem('oldRole', docSnap.data().role);
             window.alert("Sign-in successful!");
 
             // Redirect based on role
@@ -43,8 +44,18 @@ export default function Signin() {
         }
       });
     } catch (error) {
-      window.alert(`Sign-in failed: ${error.message}`);
       console.log(error.message);
+
+      // Detailed error handling for Firebase sign-in errors
+      if (error.code === 'auth/user-not-found') {
+        alert('No user found with this email. Please check your email address.');
+      } else if (error.code === 'auth/wrong-password') {
+        alert('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/invalid-email') {
+        alert('Invalid email address. Please enter a valid email.');
+      } else {
+        alert(`Sign-in failed. Error: ${error.message}`);
+      }
     }
   };
 

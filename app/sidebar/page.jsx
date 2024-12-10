@@ -23,9 +23,6 @@ export default function Sidebar() {
     }
   }, []); // Run only once when the component is first mounted
 
-
-  
-
   const handleAddUserClick = () => {
     if (role === 'Manager' || role === 'Admin') {
       setShowAddUserModal(true);
@@ -38,6 +35,16 @@ export default function Sidebar() {
     const userRole = role === 'Admin' ? 'Manager' : 'Contractor';
 
     try {
+      // Basic validation for email and password
+      if (!userEmail || !userPassword) {
+        alert('Please enter both email and password.');
+        return;
+      }
+      if (userPassword.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, userEmail, userPassword);
       const userUid = userCredential.user.uid;
 
@@ -47,24 +54,32 @@ export default function Sidebar() {
         role: userRole,
         uid: userUid,
       });
+
       console.log(`${userRole} added:`, userEmail);
       alert(`${userRole} successfully added: ${userEmail}`);
       setShowAddUserModal(false);
       signOut(auth);
       await signInWithEmailAndPassword(auth, localStorage.getItem('oldEmail'), localStorage.getItem('oldPass'));
-      console.log(localStorage.getItem('oldEmail'));
-      console.log(localStorage.getItem('oldPass'));
-      localStorage.setItem('currRole', localStorage.getItem('oldEmail'));
+
+      localStorage.setItem('currRole', localStorage.getItem('oldRole'));
       localStorage.setItem('currEmail', localStorage.getItem('oldEmail'));
 
       // Close the modal and clear form fields
-      setShowAddUserModal(false);
       setUserEmail('');
       setUserPassword('');
-
     } catch (error) {
       console.error(`Error adding ${userRole}:`, error.message);
-      alert(`Failed to add ${userRole}. Please check the details and try again.`);
+
+      // Detailed error handling for Firebase errors
+      if (error.code === 'auth/weak-password') {
+        alert('Password is too weak. Please choose a stronger password with at least 6 characters.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        alert('This email is already in use. Please use a different email address.');
+      } else if (error.code === 'auth/invalid-email') {
+        alert('Invalid email address. Please enter a valid email.');
+      } else {
+        alert(`Failed to add ${userRole}. Please check the details and try again.`);
+      }
     }
   };
 

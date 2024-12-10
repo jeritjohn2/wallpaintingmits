@@ -17,20 +17,43 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      const user = auth.currentUser;
+      // Basic validation for email and password
+      if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+      }
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters long.');
+        return;
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
       if (user) {
+        // Add user details to the Firestore database
         await setDoc(doc(db, "Users", user.uid), {
           uid: user.uid,
           email: user.email,
           role: role,
         });
+
         window.alert("Signup successful!");
         router.push('/signin'); // Redirect to sign-in page
       }
     } catch (error) {
-      window.alert(`Error: ${error.message}`);
       console.log(error.message);
+
+      // Detailed error handling for Firebase errors
+      if (error.code === 'auth/weak-password') {
+        alert('Password is too weak. Please choose a stronger password with at least 6 characters.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        alert('This email is already in use. Please use a different email address.');
+      } else if (error.code === 'auth/invalid-email') {
+        alert('Invalid email address. Please enter a valid email.');
+      } else {
+        alert(`Signup failed. Error: ${error.message}`);
+      }
     }
   };
 
