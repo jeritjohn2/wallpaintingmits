@@ -191,6 +191,13 @@ export default function ViewContractor() {
                   </div>
                 )}
 
+                {session.sessionData.remark && (
+                          <div className="mt-4 p-4 border rounded-md ">
+                            <h3 className=" font-semibold">Remarks : </h3>
+                            <p className="">{session.sessionData.remark}</p>
+                          </div>
+                        )}
+                  <br />
                 <div className="flex flex-wrap gap-4">
                   {session.imageUrls.map((url, imgIndex) => (
                     <div
