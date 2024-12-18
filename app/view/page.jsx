@@ -193,7 +193,7 @@ export default function ViewContractor() {
 
                 {session.sessionData.remark && (
                           <div className="mt-4 p-4 border rounded-md ">
-                            <h3 className=" font-semibold">Remarks : </h3>
+                            <h3 className=" font-semibold">Remarks By Contractor : </h3>
                             <p className="">{session.sessionData.remark}</p>
                           </div>
                         )}
